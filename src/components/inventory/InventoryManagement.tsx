@@ -1,9 +1,22 @@
 
 import React, { useState } from 'react';
 import { Search, Filter, PlusCircle, Edit, Trash2, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Sample product data
-const sampleInventory = [
+const initialInventory = [
   { id: '1', name: 'Bluetooth Headphones', sku: 'BT-HP-001', category: 'Electronics', stock: 15, price: 59.99, cost: 35.00 },
   { id: '2', name: 'USB-C Charger Cable', sku: 'USB-C-001', category: 'Electronics', stock: 23, price: 12.99, cost: 5.50 },
   { id: '3', name: 'Wireless Mouse', sku: 'WL-MS-001', category: 'Electronics', stock: 7, price: 24.95, cost: 14.20 },
@@ -15,17 +28,119 @@ const sampleInventory = [
 ];
 
 const InventoryManagement = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [inventory, setInventory] = useState(initialInventory);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    sku: '',
+    category: 'Electronics',
+    stock: 0,
+    price: 0,
+    cost: 0
+  });
   
   const categories = ['All', 'Electronics', 'Clothing', 'Accessories', 'Food & Beverages'];
   
-  const filteredInventory = sampleInventory.filter(item => 
+  const filteredInventory = inventory.filter(item => 
     (selectedCategory === 'All' || item.category === selectedCategory) &&
     (item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
      item.sku.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    if (name === 'stock' || name === 'price' || name === 'cost') {
+      // Convert string to number for numerical fields
+      setNewProduct({
+        ...newProduct,
+        [name]: value === '' ? 0 : parseFloat(value)
+      });
+    } else {
+      setNewProduct({
+        ...newProduct,
+        [name]: value
+      });
+    }
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setNewProduct({
+      ...newProduct,
+      category: value
+    });
+  };
+
+  const handleAddProduct = () => {
+    // Validate required fields
+    if (!newProduct.name || !newProduct.sku) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if SKU already exists
+    if (inventory.some(item => item.sku === newProduct.sku)) {
+      toast({
+        title: "Duplicate SKU",
+        description: "This SKU already exists. Please use a unique SKU.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const productToAdd = {
+      ...newProduct,
+      id: Math.random().toString(36).substring(2, 9),
+    };
+
+    setInventory([...inventory, productToAdd]);
+    setIsModalOpen(false);
+    resetForm();
+    
+    toast({
+      title: "Product added",
+      description: `${productToAdd.name} has been added to inventory`,
+    });
+  };
+
+  const resetForm = () => {
+    setNewProduct({
+      name: '',
+      sku: '',
+      category: 'Electronics',
+      stock: 0,
+      price: 0,
+      cost: 0
+    });
+  };
+
+  const confirmDelete = (id: string) => {
+    setProductToDelete(id);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteProduct = () => {
+    if (!productToDelete) return;
+    
+    const productName = inventory.find(item => item.id === productToDelete)?.name;
+    setInventory(inventory.filter(item => item.id !== productToDelete));
+    setIsDeleteConfirmOpen(false);
+    setProductToDelete(null);
+    
+    toast({
+      title: "Product deleted",
+      description: `${productName} has been removed from inventory`,
+    });
+  };
   
   return (
     <div className="space-y-6">
@@ -118,7 +233,10 @@ const InventoryManagement = () => {
                         <button className="p-1 text-blue-500 hover:text-blue-700">
                           <Edit size={18} />
                         </button>
-                        <button className="p-1 text-red-500 hover:text-red-700">
+                        <button 
+                          className="p-1 text-red-500 hover:text-red-700"
+                          onClick={() => confirmDelete(product.id)}
+                        >
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -142,32 +260,148 @@ const InventoryManagement = () => {
         </div>
       </div>
       
-      {/* Add Product Modal - Just a placeholder for this demo */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-lg w-full p-6">
-            <h2 className="text-xl font-bold mb-4">Add New Product</h2>
-            <p className="mb-6">This would be a form for adding new products in a real application.</p>
-            <div className="flex justify-end gap-3">
-              <button 
-                className="pos-btn pos-btn-secondary"
-                onClick={() => setIsModalOpen(false)}
+      {/* Add Product Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Product</DialogTitle>
+            <DialogDescription>
+              Enter the product details below to add it to your inventory.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-1 gap-2">
+              <Label htmlFor="name" className="text-right">
+                Product Name*
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="Enter product name"
+                value={newProduct.name}
+                onChange={handleInputChange}
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 gap-2">
+              <Label htmlFor="sku" className="text-right">
+                SKU*
+              </Label>
+              <Input
+                id="sku"
+                name="sku"
+                placeholder="Enter product SKU"
+                value={newProduct.sku}
+                onChange={handleInputChange}
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 gap-2">
+              <Label htmlFor="category" className="text-right">
+                Category
+              </Label>
+              <Select 
+                value={newProduct.category} 
+                onValueChange={handleCategoryChange}
               >
-                Cancel
-              </button>
-              <button 
-                className="pos-btn pos-btn-primary"
-                onClick={() => {
-                  setIsModalOpen(false);
-                  alert('Product added successfully!');
-                }}
-              >
-                Add Product
-              </button>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.slice(1).map(category => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="stock" className="text-right">
+                  Stock
+                </Label>
+                <Input
+                  id="stock"
+                  name="stock"
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={newProduct.stock || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="price" className="text-right">
+                  Price
+                </Label>
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={newProduct.price || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="cost" className="text-right">
+                  Cost
+                </Label>
+                <Input
+                  id="cost"
+                  name="cost"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={newProduct.cost || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              resetForm();
+              setIsModalOpen(false);
+            }}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddProduct}>
+              Add Product
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this product? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteProduct}>
+              Delete Product
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
