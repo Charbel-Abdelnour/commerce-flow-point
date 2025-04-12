@@ -82,13 +82,30 @@ const CustomerForm = ({ customer, onSave, onCancel }: CustomerFormProps) => {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    // Ensure all required fields are included
     if (customer) {
+      // When editing an existing customer, include the ID
       onSave({
         id: customer.id,
-        ...values,
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        address: values.address,
+        totalSpent: values.totalSpent,
+        lastPurchase: values.lastPurchase,
+        type: values.type,
       });
     } else {
-      onSave(values);
+      // When creating a new customer, pass all fields except ID
+      onSave({
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        address: values.address,
+        totalSpent: values.totalSpent,
+        lastPurchase: values.lastPurchase,
+        type: values.type,
+      });
     }
   }
 
