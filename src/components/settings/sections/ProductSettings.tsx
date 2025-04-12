@@ -40,6 +40,21 @@ interface ProductSettingsProps {
   onSave: () => void;
 }
 
+// Define types for our data structures
+interface Category {
+  id: string;
+  name: string;
+  description: string;
+  active: boolean;
+}
+
+interface Unit {
+  id: string;
+  name: string;
+  abbreviation: string;
+  active: boolean;
+}
+
 const categorySchema = z.object({
   name: z.string().min(1, { message: "Category name is required" }),
   description: z.string().optional(),
@@ -53,13 +68,13 @@ const unitSchema = z.object({
 });
 
 const ProductSettings = ({ onSave }: ProductSettingsProps) => {
-  const [categories, setCategories] = useState([
+  const [categories, setCategories] = useState<Category[]>([
     { id: '1', name: 'Beverages', description: 'Drinks and liquid refreshments', active: true },
     { id: '2', name: 'Food', description: 'Edible items and snacks', active: true },
     { id: '3', name: 'Electronics', description: 'Electronic devices and accessories', active: false },
   ]);
   
-  const [units, setUnits] = useState([
+  const [units, setUnits] = useState<Unit[]>([
     { id: '1', name: 'Each', abbreviation: 'ea', active: true },
     { id: '2', name: 'Kilogram', abbreviation: 'kg', active: true },
     { id: '3', name: 'Liter', abbreviation: 'L', active: true },
@@ -67,8 +82,8 @@ const ProductSettings = ({ onSave }: ProductSettingsProps) => {
   
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [unitDialogOpen, setUnitDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<any>(null);
-  const [editingUnit, setEditingUnit] = useState<any>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
   
   const categoryForm = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
@@ -91,10 +106,15 @@ const ProductSettings = ({ onSave }: ProductSettingsProps) => {
   function onSubmitCategory(values: z.infer<typeof categorySchema>) {
     if (editingCategory) {
       setCategories(categories.map(cat => 
-        cat.id === editingCategory.id ? { ...values, id: cat.id } : cat
+        cat.id === editingCategory.id ? { 
+          ...cat, 
+          name: values.name,
+          description: values.description || '',
+          active: values.active
+        } : cat
       ));
     } else {
-      const newCategory = {
+      const newCategory: Category = {
         id: Math.random().toString(36).substring(2, 9),
         name: values.name,
         description: values.description || '',
@@ -112,10 +132,15 @@ const ProductSettings = ({ onSave }: ProductSettingsProps) => {
   function onSubmitUnit(values: z.infer<typeof unitSchema>) {
     if (editingUnit) {
       setUnits(units.map(unit => 
-        unit.id === editingUnit.id ? { ...values, id: unit.id } : unit
+        unit.id === editingUnit.id ? {
+          ...unit,
+          name: values.name,
+          abbreviation: values.abbreviation,
+          active: values.active
+        } : unit
       ));
     } else {
-      const newUnit = {
+      const newUnit: Unit = {
         id: Math.random().toString(36).substring(2, 9),
         name: values.name,
         abbreviation: values.abbreviation,
@@ -138,7 +163,7 @@ const ProductSettings = ({ onSave }: ProductSettingsProps) => {
     setUnits(units.filter(unit => unit.id !== id));
   };
   
-  const editCategory = (category: any) => {
+  const editCategory = (category: Category) => {
     setEditingCategory(category);
     categoryForm.reset({
       name: category.name,
@@ -148,7 +173,7 @@ const ProductSettings = ({ onSave }: ProductSettingsProps) => {
     setCategoryDialogOpen(true);
   };
   
-  const editUnit = (unit: any) => {
+  const editUnit = (unit: Unit) => {
     setEditingUnit(unit);
     unitForm.reset({
       name: unit.name,
