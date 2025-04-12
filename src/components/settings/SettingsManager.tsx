@@ -1,109 +1,74 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/hooks/use-toast';
 import GeneralSettings from './sections/GeneralSettings';
 import UserSettings from './sections/UserSettings';
 import PaymentSettings from './sections/PaymentSettings';
 import ReceiptSettings from './sections/ReceiptSettings';
 import TaxSettings from './sections/TaxSettings';
 import IntegrationSettings from './sections/IntegrationSettings';
-import { Card, CardContent } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
+import ProductSettings from './sections/ProductSettings';
+import ProfileSettings from './sections/ProfileSettings';
 
 const SettingsManager = () => {
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState('general');
 
-  const handleSave = (section: string) => {
-    // In a real app, this would save to backend/database
+  const handleSave = () => {
     toast({
-      title: "Settings Saved",
-      description: `Your ${section} settings have been updated successfully.`,
+      title: "Settings saved",
+      description: "Your settings have been saved successfully.",
     });
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your POS system settings and preferences.
-          </p>
-        </div>
+    <div className="container py-6">
+      <h1 className="text-2xl font-bold tracking-tight mb-4">Settings</h1>
+
+      <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="payment">Payment</TabsTrigger>
+          <TabsTrigger value="receipt">Receipt</TabsTrigger>
+          <TabsTrigger value="tax">Tax</TabsTrigger>
+          <TabsTrigger value="integrations">Integrations</TabsTrigger>
+        </TabsList>
         
-        <Card>
-          <CardContent className="p-0">
-            <Tabs 
-              defaultValue="general" 
-              className="w-full"
-              value={activeTab}
-              onValueChange={setActiveTab}
-            >
-              <div className="flex border-b">
-                <TabsList className="h-auto p-0 bg-transparent flex flex-nowrap overflow-x-auto">
-                  <TabsTrigger 
-                    value="general" 
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-4 py-3"
-                  >
-                    General
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="users" 
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-4 py-3"
-                  >
-                    Users & Permissions
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="payment" 
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-4 py-3"
-                  >
-                    Payment Methods
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="receipts" 
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-4 py-3"
-                  >
-                    Receipts
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="tax" 
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-4 py-3"
-                  >
-                    Tax Settings
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="integrations" 
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-4 py-3"
-                  >
-                    Integrations
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-              
-              <div className="p-6">
-                <TabsContent value="general" className="mt-0 p-0">
-                  <GeneralSettings onSave={() => handleSave("general")} />
-                </TabsContent>
-                <TabsContent value="users" className="mt-0 p-0">
-                  <UserSettings onSave={() => handleSave("user")} />
-                </TabsContent>
-                <TabsContent value="payment" className="mt-0 p-0">
-                  <PaymentSettings onSave={() => handleSave("payment")} />
-                </TabsContent>
-                <TabsContent value="receipts" className="mt-0 p-0">
-                  <ReceiptSettings onSave={() => handleSave("receipt")} />
-                </TabsContent>
-                <TabsContent value="tax" className="mt-0 p-0">
-                  <TaxSettings onSave={() => handleSave("tax")} />
-                </TabsContent>
-                <TabsContent value="integrations" className="mt-0 p-0">
-                  <IntegrationSettings onSave={() => handleSave("integration")} />
-                </TabsContent>
-              </div>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="general" className="space-y-4">
+          <GeneralSettings onSave={handleSave} />
+        </TabsContent>
+        
+        <TabsContent value="profile" className="space-y-4">
+          <ProfileSettings onSave={handleSave} />
+        </TabsContent>
+        
+        <TabsContent value="users" className="space-y-4">
+          <UserSettings onSave={handleSave} />
+        </TabsContent>
+        
+        <TabsContent value="products" className="space-y-4">
+          <ProductSettings onSave={handleSave} />
+        </TabsContent>
+        
+        <TabsContent value="payment" className="space-y-4">
+          <PaymentSettings onSave={handleSave} />
+        </TabsContent>
+        
+        <TabsContent value="receipt" className="space-y-4">
+          <ReceiptSettings onSave={handleSave} />
+        </TabsContent>
+        
+        <TabsContent value="tax" className="space-y-4">
+          <TaxSettings onSave={handleSave} />
+        </TabsContent>
+        
+        <TabsContent value="integrations" className="space-y-4">
+          <IntegrationSettings onSave={handleSave} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
