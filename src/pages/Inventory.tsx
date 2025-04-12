@@ -1,14 +1,14 @@
 
 import React from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import DashboardOverview from '../components/dashboard/DashboardOverview';
+import InventoryManagement from '../components/inventory/InventoryManagement';
 
-const Index = () => {
+const Inventory = () => {
   return (
     <DashboardLayout>
-      <DashboardOverview />
+      <InventoryManagement />
     </DashboardLayout>
   );
 };
 
-export default Index;
+export default Inventory;

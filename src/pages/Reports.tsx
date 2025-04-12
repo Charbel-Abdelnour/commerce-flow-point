@@ -1,14 +1,14 @@
 
 import React from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import DashboardOverview from '../components/dashboard/DashboardOverview';
+import ReportingOverview from '../components/reports/ReportingOverview';
 
-const Index = () => {
+const Reports = () => {
   return (
     <DashboardLayout>
-      <DashboardOverview />
+      <ReportingOverview />
     </DashboardLayout>
   );
 };
 
-export default Index;
+export default Reports;

@@ -1,14 +1,14 @@
 
 import React from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import DashboardOverview from '../components/dashboard/DashboardOverview';
+import POSInterface from '../components/pos/POSInterface';
 
-const Index = () => {
+const POS = () => {
   return (
     <DashboardLayout>
-      <DashboardOverview />
+      <POSInterface />
     </DashboardLayout>
   );
 };
 
-export default Index;
+export default POS;
